@@ -10,35 +10,32 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return Response.json(
-        { error: "Email dan password wajib diisi" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
+    // Check user based on email
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user) {
-      return Response.json({ error: "Email tidak ditemukan" }, { status: 404 });
-    }
+    if (!user)
+      return Response.json({ error: "Email not found" }, { status: 404 });
 
+    // Compare password
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return Response.json({ error: "Password salah" }, { status: 401 });
-    }
+    if (!passwordMatch)
+      return Response.json({ error: "Wrong password" }, { status: 401 });
 
     // Generate token
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    return Response.json({ message: "Login berhasil", token });
+    return Response.json({ message: "Login successful", token });
   } catch (error) {
     console.error(error);
-    return Response.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    return Response.json({ error: "A server error occurred" }, { status: 500 });
   }
 }

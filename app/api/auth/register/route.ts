@@ -7,24 +7,27 @@ export async function POST(req: Request) {
 
     if (!email || !password) {
       return Response.json(
-        { error: "Email dan password wajib diisi" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    // Cek apakah user sudah ada
+    // Check existing user
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      return Response.json({ error: "Email sudah terdaftar" }, { status: 400 });
+      return Response.json(
+        { error: "Email is already registered" },
+        { status: 400 }
+      );
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Simpan user baru
+    // Save new user
     const user = await prisma.user.create({
       data: {
         email,
@@ -34,14 +37,11 @@ export async function POST(req: Request) {
     });
 
     return Response.json(
-      { message: "Registrasi berhasil", user },
+      { message: "Registration successful", user },
       { status: 201 }
     );
   } catch (error) {
     console.error(error);
-    return Response.json(
-      { error: "Terjadi kesalahan server" },
-      { status: 500 }
-    );
+    return Response.json({ error: "A server error occurred" }, { status: 500 });
   }
 }
